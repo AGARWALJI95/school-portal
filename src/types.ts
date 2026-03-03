@@ -3,7 +3,6 @@ export interface Student {
   name: string;
   grade: string;
   roll_number: string;
-  email: string;
   dob?: string;
   parent_name?: string;
   parent_contact?: string;
@@ -16,6 +15,7 @@ export interface Staff {
   name: string;
   role: string;
   email: string;
+  phone?: string;
 }
 
 export interface AttendanceRecord {
@@ -77,7 +77,6 @@ export interface Admission {
   grade_applied: string;
   parent_name: string;
   parent_contact: string;
-  email: string;
   address: string;
   status: 'pending' | 'reviewed' | 'accepted' | 'rejected';
   applied_at: string;
@@ -88,6 +87,7 @@ export interface Notification {
   title: string;
   message: string;
   type: 'info' | 'warning' | 'urgent';
+  broadcast?: number;
   created_at: string;
 }
 

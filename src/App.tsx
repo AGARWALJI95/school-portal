@@ -20,7 +20,8 @@ import {
   Phone,
   Globe,
   Map as MapIcon,
-  FileText
+  FileText,
+  Edit3
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Student, Staff, Activity, Result, Quiz, Testimonial, DashboardStats, Admission, Notification } from './types';
@@ -70,9 +71,18 @@ export default function App() {
       {/* Sidebar */}
       <aside className="w-64 bg-white border-r border-black/5 flex flex-col">
         <div className="p-6 border-b border-black/5">
-          <h1 className="text-xl font-bold tracking-tight flex items-center gap-2">
-            <GraduationCap className="w-6 h-6 text-emerald-600" />
-            Nakeebpur Second
+          <h1 className="text-xl font-bold tracking-tight flex items-center gap-3">
+            <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center overflow-hidden border border-black/5">
+              <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" onError={(e) => {
+                // Fallback if logo not found
+                e.currentTarget.style.display = 'none';
+                e.currentTarget.parentElement!.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-graduation-cap w-6 h-6 text-emerald-600"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>';
+              }} />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-sm leading-tight">Nakeebpur</span>
+              <span className="text-[10px] text-black/40 uppercase tracking-widest">Second</span>
+            </div>
           </h1>
         </div>
         
@@ -183,7 +193,12 @@ function DashboardView({ stats }: { stats: DashboardStats | null }) {
                 <div className="flex-1">
                   <p className="text-sm font-bold">{n.title}</p>
                   <p className="text-xs text-black/60 line-clamp-1">{n.message}</p>
-                  <p className="text-[10px] text-black/30 mt-1 uppercase font-bold">{new Date(n.created_at).toLocaleDateString()}</p>
+                  <div className="flex items-center gap-2 mt-1">
+                    <p className="text-[10px] text-black/30 uppercase font-bold">{new Date(n.created_at).toLocaleDateString()}</p>
+                    {n.broadcast === 1 && (
+                      <span className="text-[8px] font-bold text-emerald-600 uppercase tracking-widest">Broadcasted</span>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
@@ -247,7 +262,7 @@ function RecordsView({ type }: { type: 'student' | 'staff' }) {
   const [editingRecord, setEditingRecord] = useState<any | null>(null);
   const [viewingRecord, setViewingRecord] = useState<any | null>(null);
   const [formData, setFormData] = useState({ 
-    name: '', grade: '', roll_number: '', role: '', email: '', 
+    name: '', grade: '', roll_number: '', role: '', email: '', phone: '',
     dob: '', parent_name: '', parent_contact: '', address: '', notes: '' 
   });
 
@@ -279,7 +294,7 @@ function RecordsView({ type }: { type: 'student' | 'staff' }) {
 
   const resetForm = () => {
     setFormData({ 
-      name: '', grade: '', roll_number: '', role: '', email: '', 
+      name: '', grade: '', roll_number: '', role: '', email: '', phone: '',
       dob: '', parent_name: '', parent_contact: '', address: '', notes: '' 
     });
     setShowAdd(false);
@@ -294,6 +309,7 @@ function RecordsView({ type }: { type: 'student' | 'staff' }) {
       roll_number: record.roll_number || '',
       role: record.role || '',
       email: record.email || '',
+      phone: record.phone || '',
       dob: record.dob || '',
       parent_name: record.parent_name || '',
       parent_contact: record.parent_contact || '',
@@ -330,16 +346,29 @@ function RecordsView({ type }: { type: 'student' | 'staff' }) {
                 required
               />
             </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold uppercase text-black/40 ml-1">Email Address</label>
-              <input 
-                placeholder="Email Address" 
-                className="w-full p-3 bg-black/5 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500/20"
-                value={formData.email}
-                onChange={e => setFormData({...formData, email: e.target.value})}
-                required
-              />
-            </div>
+            {type === 'staff' && (
+              <>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold uppercase text-black/40 ml-1">Email Address</label>
+                  <input 
+                    placeholder="Email Address" 
+                    className="w-full p-3 bg-black/5 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500/20"
+                    value={formData.email}
+                    onChange={e => setFormData({...formData, email: e.target.value})}
+                    required
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold uppercase text-black/40 ml-1">Phone Number</label>
+                  <input 
+                    placeholder="Phone Number" 
+                    className="w-full p-3 bg-black/5 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500/20"
+                    value={formData.phone}
+                    onChange={e => setFormData({...formData, phone: e.target.value})}
+                  />
+                </div>
+              </>
+            )}
             
             {type === 'student' ? (
               <>
@@ -506,7 +535,12 @@ function RecordsView({ type }: { type: 'student' | 'staff' }) {
             </div>
             
             <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-              <ProfileField label="Email Address" value={viewingRecord.email} />
+              {type === 'staff' && (
+                <>
+                  <ProfileField label="Email Address" value={viewingRecord.email} />
+                  <ProfileField label="Phone Number" value={viewingRecord.phone || 'Not set'} />
+                </>
+              )}
               {type === 'student' && (
                 <>
                   <ProfileField label="Date of Birth" value={viewingRecord.dob || 'Not set'} />
@@ -1009,6 +1043,7 @@ function QuizView() {
 function TestimonialsView() {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [showAdd, setShowAdd] = useState(false);
+  const [editingTestimonial, setEditingTestimonial] = useState<Testimonial | null>(null);
   const [formData, setFormData] = useState({ author: '', content: '' });
 
   useEffect(() => { fetchTestimonials(); }, []);
@@ -1021,31 +1056,42 @@ function TestimonialsView() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await fetch('/api/testimonials', {
-      method: 'POST',
+    const url = editingTestimonial ? `/api/testimonials/${editingTestimonial.id}` : '/api/testimonials';
+    const method = editingTestimonial ? 'PUT' : 'POST';
+    
+    await fetch(url, {
+      method,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData)
     });
     setFormData({ author: '', content: '' });
     setShowAdd(false);
+    setEditingTestimonial(null);
     fetchTestimonials();
+  };
+
+  const handleEdit = (t: Testimonial) => {
+    setEditingTestimonial(t);
+    setFormData({ author: t.author, content: t.content });
+    setShowAdd(true);
   };
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-bold">What People Say About Nakeebpur Second</h3>
-        <button onClick={() => setShowAdd(true)} className="bg-emerald-600 text-white px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2"><Plus size={18} /> Share Feedback</button>
+        <button onClick={() => { setEditingTestimonial(null); setFormData({ author: '', content: '' }); setShowAdd(true); }} className="bg-emerald-600 text-white px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2"><Plus size={18} /> Share Feedback</button>
       </div>
 
       {showAdd && (
         <div className="bg-white p-6 rounded-2xl border border-black/5 shadow-lg">
+          <h4 className="font-bold mb-4">{editingTestimonial ? 'Edit Testimonial' : 'Add New Testimonial'}</h4>
           <form onSubmit={handleSubmit} className="space-y-4">
             <input placeholder="Your Name / Role" className="w-full p-3 bg-black/5 rounded-xl text-sm outline-none" value={formData.author} onChange={e => setFormData({...formData, author: e.target.value})} required />
             <textarea placeholder="Your Testimonial" className="w-full p-3 bg-black/5 rounded-xl text-sm outline-none h-24" value={formData.content} onChange={e => setFormData({...formData, content: e.target.value})} required />
             <div className="flex gap-2">
-              <button type="submit" className="bg-emerald-600 text-white px-6 py-2 rounded-xl text-sm font-medium">Submit Testimonial</button>
-              <button type="button" onClick={() => setShowAdd(false)} className="bg-black/5 px-6 py-2 rounded-xl text-sm font-medium">Cancel</button>
+              <button type="submit" className="bg-emerald-600 text-white px-6 py-2 rounded-xl text-sm font-medium">{editingTestimonial ? 'Update' : 'Submit'} Testimonial</button>
+              <button type="button" onClick={() => { setShowAdd(false); setEditingTestimonial(null); }} className="bg-black/5 px-6 py-2 rounded-xl text-sm font-medium">Cancel</button>
             </div>
           </form>
         </div>
@@ -1053,8 +1099,17 @@ function TestimonialsView() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {testimonials.map(t => (
-          <div key={t.id} className="bg-white p-6 rounded-2xl border border-black/5 shadow-sm relative overflow-hidden">
+          <div key={t.id} className="bg-white p-6 rounded-2xl border border-black/5 shadow-sm relative overflow-hidden group">
             <MessageSquare className="absolute -right-4 -bottom-4 text-black/[0.03] w-24 h-24" />
+            <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+              <button 
+                onClick={() => handleEdit(t)}
+                className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
+                title="Edit Testimonial"
+              >
+                <Edit3 size={14} />
+              </button>
+            </div>
             <p className="text-sm text-black/70 italic mb-6 relative z-10">"{t.content}"</p>
             <div className="flex items-center gap-3 relative z-10">
               <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-bold text-xs">
@@ -1083,7 +1138,6 @@ function AdmissionView() {
     grade_applied: '',
     parent_name: '',
     parent_contact: '',
-    email: '',
     address: ''
   });
 
@@ -1107,7 +1161,6 @@ function AdmissionView() {
       grade_applied: '',
       parent_name: '',
       parent_contact: '',
-      email: '',
       address: ''
     });
     setShowForm(false);
@@ -1181,16 +1234,6 @@ function AdmissionView() {
                 value={formData.parent_contact}
                 onChange={e => setFormData({...formData, parent_contact: e.target.value})}
                 required
-              />
-            </div>
-            <div className="space-y-1">
-              <label className="text-[10px] font-bold uppercase text-black/40 ml-1">Email Address</label>
-              <input 
-                type="email"
-                placeholder="Email Address" 
-                className="w-full p-3 bg-black/5 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500/20"
-                value={formData.email}
-                onChange={e => setFormData({...formData, email: e.target.value})}
               />
             </div>
             <div className="space-y-1">
@@ -1284,7 +1327,7 @@ function AdmissionView() {
 function NotificationsView() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showAdd, setShowAdd] = useState(false);
-  const [formData, setFormData] = useState({ title: '', message: '', type: 'info' as 'info' | 'warning' | 'urgent' });
+  const [formData, setFormData] = useState({ title: '', message: '', type: 'info' as 'info' | 'warning' | 'urgent', broadcast: false });
 
   useEffect(() => { fetchNotifications(); }, []);
 
@@ -1301,7 +1344,7 @@ function NotificationsView() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData)
     });
-    setFormData({ title: '', message: '', type: 'info' });
+    setFormData({ title: '', message: '', type: 'info', broadcast: false });
     setShowAdd(false);
     fetchNotifications();
   };
@@ -1347,6 +1390,18 @@ function NotificationsView() {
               onChange={e => setFormData({...formData, message: e.target.value})} 
               required 
             />
+            <div className="flex items-center gap-2 px-1">
+              <input 
+                type="checkbox" 
+                id="broadcast" 
+                className="w-4 h-4 rounded border-black/10 text-emerald-600 focus:ring-emerald-500"
+                checked={formData.broadcast}
+                onChange={e => setFormData({...formData, broadcast: e.target.checked})}
+              />
+              <label htmlFor="broadcast" className="text-xs font-medium text-black/60 cursor-pointer">
+                Broadcast to all staff (Email & SMS) and parents (SMS)
+              </label>
+            </div>
             <div className="flex gap-2">
               <button type="submit" className="bg-emerald-600 text-white px-6 py-2 rounded-xl text-sm font-medium">Post Now</button>
               <button type="button" onClick={() => setShowAdd(false)} className="bg-black/5 px-6 py-2 rounded-xl text-sm font-medium">Cancel</button>
@@ -1373,9 +1428,16 @@ function NotificationsView() {
             <div className="flex-1">
               <div className="flex justify-between items-start mb-1">
                 <h4 className="font-bold text-lg">{n.title}</h4>
-                <span className="text-[10px] font-bold text-black/30 uppercase tracking-widest">
-                  {new Date(n.created_at).toLocaleDateString()}
-                </span>
+                <div className="flex items-center gap-2">
+                  {n.broadcast === 1 && (
+                    <span className="px-2 py-0.5 bg-emerald-50 text-emerald-600 text-[8px] font-bold uppercase tracking-widest rounded-full border border-emerald-100">
+                      Broadcasted
+                    </span>
+                  )}
+                  <span className="text-[10px] font-bold text-black/30 uppercase tracking-widest">
+                    {new Date(n.created_at).toLocaleDateString()}
+                  </span>
+                </div>
               </div>
               <p className="text-sm text-black/60 leading-relaxed">{n.message}</p>
             </div>

@@ -16,7 +16,6 @@ db.exec(`
     name TEXT NOT NULL,
     grade TEXT NOT NULL,
     roll_number TEXT UNIQUE,
-    email TEXT,
     dob TEXT,
     parent_name TEXT,
     parent_contact TEXT,
@@ -28,7 +27,8 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
     role TEXT NOT NULL,
-    email TEXT UNIQUE
+    email TEXT UNIQUE,
+    phone TEXT
   );
 
   CREATE TABLE IF NOT EXISTS attendance (
@@ -77,7 +77,6 @@ db.exec(`
     grade_applied TEXT NOT NULL,
     parent_name TEXT NOT NULL,
     parent_contact TEXT NOT NULL,
-    email TEXT,
     address TEXT,
     status TEXT DEFAULT 'pending',
     applied_at DATETIME DEFAULT CURRENT_TIMESTAMP
@@ -88,14 +87,15 @@ db.exec(`
     title TEXT NOT NULL,
     message TEXT NOT NULL,
     type TEXT DEFAULT 'info',
+    broadcast INTEGER DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 
   -- Seed Data
-  INSERT OR IGNORE INTO students (id, name, grade, roll_number, email) VALUES 
-    (1, 'John Doe', '10-A', '101', 'john@example.com'),
-    (2, 'Jane Smith', '10-A', '102', 'jane@example.com'),
-    (3, 'Mike Johnson', '9-B', '901', 'mike@example.com');
+  INSERT OR IGNORE INTO students (id, name, grade, roll_number) VALUES 
+    (1, 'John Doe', '10-A', '101'),
+    (2, 'Jane Smith', '10-A', '102'),
+    (3, 'Mike Johnson', '9-B', '901');
 
   INSERT OR IGNORE INTO staff (id, name, role, email) VALUES 
     (1, 'Robert Wilson', 'Principal', 'principal@school.com'),
@@ -108,6 +108,10 @@ db.exec(`
     (1, 'Parent of Grade 5 Student', 'Nakeebpur Second has made tracking my childs progress so much easier. The interface is clean and intuitive.'),
     (2, 'Senior Teacher', 'The attendance module saves me 15 minutes every morning. Highly recommended for any modern school.');
 `);
+
+// Migrations for existing databases
+try { db.exec("ALTER TABLE staff ADD COLUMN phone TEXT"); } catch (e) {}
+try { db.exec("ALTER TABLE notifications ADD COLUMN broadcast INTEGER DEFAULT 0"); } catch (e) {}
 
 async function startServer() {
   const app = express();
@@ -123,21 +127,21 @@ async function startServer() {
     res.json(students);
   });
   app.post("/api/students", (req, res) => {
-    const { name, grade, roll_number, email, dob, parent_name, parent_contact, address, notes } = req.body;
+    const { name, grade, roll_number, dob, parent_name, parent_contact, address, notes } = req.body;
     const info = db.prepare(`
-      INSERT INTO students (name, grade, roll_number, email, dob, parent_name, parent_contact, address, notes) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).run(name, grade, roll_number, email, dob, parent_name, parent_contact, address, notes);
+      INSERT INTO students (name, grade, roll_number, dob, parent_name, parent_contact, address, notes) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(name, grade, roll_number, dob, parent_name, parent_contact, address, notes);
     res.json({ id: info.lastInsertRowid });
   });
 
   app.put("/api/students/:id", (req, res) => {
-    const { name, grade, roll_number, email, dob, parent_name, parent_contact, address, notes } = req.body;
+    const { name, grade, roll_number, dob, parent_name, parent_contact, address, notes } = req.body;
     db.prepare(`
       UPDATE students 
-      SET name = ?, grade = ?, roll_number = ?, email = ?, dob = ?, parent_name = ?, parent_contact = ?, address = ?, notes = ?
+      SET name = ?, grade = ?, roll_number = ?, dob = ?, parent_name = ?, parent_contact = ?, address = ? , notes = ?
       WHERE id = ?
-    `).run(name, grade, roll_number, email, dob, parent_name, parent_contact, address, notes, req.params.id);
+    `).run(name, grade, roll_number, dob, parent_name, parent_contact, address, notes, req.params.id);
     res.json({ success: true });
   });
 
@@ -147,9 +151,15 @@ async function startServer() {
     res.json(staff);
   });
   app.post("/api/staff", (req, res) => {
-    const { name, role, email } = req.body;
-    const info = db.prepare("INSERT INTO staff (name, role, email) VALUES (?, ?, ?)").run(name, role, email);
+    const { name, role, email, phone } = req.body;
+    const info = db.prepare("INSERT INTO staff (name, role, email, phone) VALUES (?, ?, ?, ?)").run(name, role, email, phone);
     res.json({ id: info.lastInsertRowid });
+  });
+  app.put("/api/staff/:id", (req, res) => {
+    const { id } = req.params;
+    const { name, role, email, phone } = req.body;
+    db.prepare("UPDATE staff SET name = ?, role = ?, email = ?, phone = ? WHERE id = ?").run(name, role, email, phone, id);
+    res.json({ success: true });
   });
 
   // Attendance
@@ -211,6 +221,11 @@ async function startServer() {
     db.prepare("INSERT INTO testimonials (author, content) VALUES (?, ?)").run(author, content);
     res.json({ success: true });
   });
+  app.put("/api/testimonials/:id", (req, res) => {
+    const { author, content } = req.body;
+    db.prepare("UPDATE testimonials SET author = ?, content = ? WHERE id = ?").run(author, content, req.params.id);
+    res.json({ success: true });
+  });
 
   // Admissions
   app.get("/api/admissions", (req, res) => {
@@ -218,8 +233,8 @@ async function startServer() {
     res.json(admissions);
   });
   app.post("/api/admissions", (req, res) => {
-    const { student_name, grade_applied, parent_name, parent_contact, email, address } = req.body;
-    db.prepare("INSERT INTO admissions (student_name, grade_applied, parent_name, parent_contact, email, address) VALUES (?, ?, ?, ?, ?, ?)").run(student_name, grade_applied, parent_name, parent_contact, email, address);
+    const { student_name, grade_applied, parent_name, parent_contact, address } = req.body;
+    db.prepare("INSERT INTO admissions (student_name, grade_applied, parent_name, parent_contact, address) VALUES (?, ?, ?, ?, ?)").run(student_name, grade_applied, parent_name, parent_contact, address);
     res.json({ success: true });
   });
 
@@ -229,8 +244,33 @@ async function startServer() {
     res.json(notifications);
   });
   app.post("/api/notifications", (req, res) => {
-    const { title, message, type } = req.body;
-    db.prepare("INSERT INTO notifications (title, message, type) VALUES (?, ?, ?)").run(title, message, type);
+    const { title, message, type, broadcast } = req.body;
+    db.prepare("INSERT INTO notifications (title, message, type, broadcast) VALUES (?, ?, ?, ?)").run(title, message, type, broadcast ? 1 : 0);
+    
+    if (broadcast) {
+      const staff = db.prepare("SELECT email, phone, name FROM staff").all() as any[];
+      const students = db.prepare("SELECT parent_contact, name FROM students").all() as any[];
+      
+      console.log(`[BROADCAST] Sending notification "${title}" to ${staff.length} staff and ${students.length} parents.`);
+      
+      staff.forEach(member => {
+        if (member.email) {
+          console.log(`[EMAIL] To: ${member.email} (${member.name}) - Subject: ${title}`);
+        }
+        if (member.phone) {
+          console.log(`[SMS] To: ${member.phone} (${member.name}) - Message: ${title}: ${message}`);
+        }
+      });
+
+      students.forEach(student => {
+        if (student.parent_contact) {
+          console.log(`[SMS] To: ${student.parent_contact} (Parent of ${student.name}) - Message: ${title}: ${message}`);
+        }
+      });
+      
+      return res.json({ success: true, broadcastCount: staff.length + students.length });
+    }
+    
     res.json({ success: true });
   });
 
