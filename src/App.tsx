@@ -24,6 +24,8 @@ import {
   Edit3
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { Logo } from './components/Logo';
+import { ChatBot } from './components/ChatBot';
 import { Student, Staff, Activity, Result, Quiz, Testimonial, DashboardStats, Admission, Notification } from './types';
 
 type View = 'dashboard' | 'students' | 'staff' | 'attendance' | 'activities' | 'results' | 'quiz' | 'testimonials' | 'admission' | 'notifications' | 'connect';
@@ -72,16 +74,13 @@ export default function App() {
       <aside className="w-64 bg-white border-r border-black/5 flex flex-col">
         <div className="p-6 border-b border-black/5">
           <h1 className="text-xl font-bold tracking-tight flex items-center gap-3">
-            <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center overflow-hidden border border-black/5">
-              <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" onError={(e) => {
-                // Fallback if logo not found
-                e.currentTarget.style.display = 'none';
-                e.currentTarget.parentElement!.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-graduation-cap w-6 h-6 text-emerald-600"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>';
-              }} />
-            </div>
+            <Logo className="w-12 h-12" />
             <div className="flex flex-col">
-              <span className="text-sm leading-tight">Nakeebpur</span>
-              <span className="text-[10px] text-black/40 uppercase tracking-widest">Second</span>
+              <span className="text-sm leading-tight font-black text-blue-700">P S NAKEEBPUR</span>
+              <div className="flex items-center gap-1">
+                <span className="text-[10px] text-blue-700 font-black uppercase tracking-widest">2ND</span>
+                <span className="text-[8px] text-red-600 font-bold italic">Since 1954</span>
+              </div>
             </div>
           </h1>
         </div>
@@ -146,6 +145,7 @@ export default function App() {
           </AnimatePresence>
         </div>
       </main>
+      <ChatBot />
     </div>
   );
 }
