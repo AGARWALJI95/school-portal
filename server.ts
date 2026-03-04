@@ -157,6 +157,17 @@ async function startServer() {
 
   // API Routes
   
+  // Explicitly serve manifest.json and sw.js with correct MIME types
+  app.get("/manifest.json", (req, res) => {
+    res.setHeader("Content-Type", "application/manifest+json");
+    res.sendFile(path.join(__dirname, "public", "manifest.json"));
+  });
+
+  app.get("/sw.js", (req, res) => {
+    res.setHeader("Content-Type", "application/javascript");
+    res.sendFile(path.join(__dirname, "public", "sw.js"));
+  });
+  
   // Admin Login
   app.post("/api/login", (req, res) => {
     const { password } = req.body;
