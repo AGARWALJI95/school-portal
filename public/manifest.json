@@ -1,0 +1,21 @@
+{
+  "name": "Primary School Nakeebpur 2nd",
+  "short_name": "PS Nakeebpur 2nd",
+  "description": "Complete School Management System with Neon Database",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4f46e5",
+  "icons": [
+    {
+      "src": "https://picsum.photos/seed/school/192/192",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://picsum.photos/seed/school/512/512",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
