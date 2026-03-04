@@ -1,21 +1,23 @@
 {
   "name": "Primary School Nakeebpur 2nd",
-  "short_name": "Nakeebpur 2nd",
-  "description": "Complete School Management System with Neon Database",
+  "short_name": "PS Nakeebpur 2nd",
+  "description": "Official School Management App for P S Nakeebpur 2nd",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#4f46e5",
   "icons": [
     {
-      "src": "https://picsum.photos/seed/school-logo-nakeebpur/192/192",
+      "src": "https://ais-dev-zr6vz7tto26wetudaq5hfw-570880703871.asia-southeast1.run.app/logo.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "https://picsum.photos/seed/school-logo-nakeebpur/512/512",
+      "src": "https://ais-dev-zr6vz7tto26wetudaq5hfw-570880703871.asia-southeast1.run.app/logo.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
