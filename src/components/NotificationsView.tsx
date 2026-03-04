@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Bell } from 'lucide-react';
 import { Notification } from '../types';
+import { API_BASE_URL } from '../config';
 
-export function NotificationsView() {
+export function NotificationsView({ isAdmin }: { isAdmin: boolean }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showAdd, setShowAdd] = useState(false);
   const [formData, setFormData] = useState({ title: '', message: '', type: 'info' as 'info' | 'warning' | 'urgent', broadcast: false });
@@ -10,14 +11,14 @@ export function NotificationsView() {
   useEffect(() => { fetchNotifications(); }, []);
 
   const fetchNotifications = async () => {
-    const res = await fetch('/api/notifications');
+    const res = await fetch(`${API_BASE_URL}/api/notifications`);
     const data = await res.json();
     setNotifications(data);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await fetch('/api/notifications', {
+    await fetch(`${API_BASE_URL}/api/notifications`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData)
@@ -31,13 +32,15 @@ export function NotificationsView() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-bold">School Notifications & Alerts</h3>
-        <button 
-          onClick={() => setShowAdd(true)} 
-          className="bg-emerald-600 text-white px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2"
-        >
-          <Plus size={18} />
-          Post Notification
-        </button>
+        {isAdmin && (
+          <button 
+            onClick={() => setShowAdd(true)} 
+            className="bg-emerald-600 text-white px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2"
+          >
+            <Plus size={18} />
+            Post Notification
+          </button>
+        )}
       </div>
 
       {showAdd && (

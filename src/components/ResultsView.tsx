@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, BookOpen } from 'lucide-react';
 import { Student, Result } from '../types';
+import { API_BASE_URL } from '../config';
 
-export function ResultsView() {
+export function ResultsView({ isAdmin }: { isAdmin: boolean }) {
   const [students, setStudents] = useState<Student[]>([]);
   const [selectedStudent, setSelectedStudent] = useState<number | null>(null);
   const [results, setResults] = useState<Result[]>([]);
@@ -10,26 +11,26 @@ export function ResultsView() {
   const [formData, setFormData] = useState({ subject: '', marks: 0, term: 'Final' });
 
   useEffect(() => {
-    fetch('/api/students').then(res => res.json()).then(setStudents);
+    fetch(`${API_BASE_URL}/api/students`).then(res => res.json()).then(setStudents);
   }, []);
 
   useEffect(() => {
     if (selectedStudent) {
-      fetch(`/api/results/${selectedStudent}`).then(res => res.json()).then(setResults);
+      fetch(`${API_BASE_URL}/api/results/${selectedStudent}`).then(res => res.json()).then(setResults);
     }
   }, [selectedStudent]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedStudent) return;
-    await fetch('/api/results', {
+    await fetch(`${API_BASE_URL}/api/results`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ...formData, student_id: selectedStudent })
     });
     setFormData({ subject: '', marks: 0, term: 'Final' });
     setShowAdd(false);
-    fetch(`/api/results/${selectedStudent}`).then(res => res.json()).then(setResults);
+    fetch(`${API_BASE_URL}/api/results/${selectedStudent}`).then(res => res.json()).then(setResults);
   };
 
   return (
@@ -58,7 +59,9 @@ export function ResultsView() {
             <>
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-bold">Academic Performance</h3>
-                <button onClick={() => setShowAdd(true)} className="bg-emerald-600 text-white px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2"><Plus size={18} /> Add Result</button>
+                {isAdmin && (
+                  <button onClick={() => setShowAdd(true)} className="bg-emerald-600 text-white px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2"><Plus size={18} /> Add Result</button>
+                )}
               </div>
 
               {showAdd && (

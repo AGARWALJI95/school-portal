@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { Plus, XCircle, FileText, MapPin } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Admission } from '../types';
+import { API_BASE_URL } from '../config';
 
-export function AdmissionView() {
+export function AdmissionView({ isAdmin }: { isAdmin: boolean }) {
   const [admissions, setAdmissions] = useState<Admission[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
@@ -17,14 +18,14 @@ export function AdmissionView() {
   useEffect(() => { fetchAdmissions(); }, []);
 
   const fetchAdmissions = async () => {
-    const res = await fetch('/api/admissions');
+    const res = await fetch(`${API_BASE_URL}/api/admissions`);
     const data = await res.json();
     setAdmissions(data);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await fetch('/api/admissions', {
+    await fetch(`${API_BASE_URL}/api/admissions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData)
@@ -138,61 +139,105 @@ export function AdmissionView() {
         </motion.div>
       )}
 
-      <div className="bg-white rounded-3xl border border-black/5 shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-black/5 bg-black/[0.01]">
-          <h4 className="font-bold">Recent Applications</h4>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-black/5 text-[10px] font-bold uppercase tracking-wider text-black/40">
-                <th className="px-6 py-4">Student</th>
-                <th className="px-6 py-4">Grade</th>
-                <th className="px-6 py-4">Parent</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-black/5">
-              {admissions.map(app => (
-                <tr key={app.id} className="hover:bg-black/[0.01] transition-colors">
-                  <td className="px-6 py-4">
+      {isAdmin && (
+        <div className="bg-white rounded-3xl border border-black/5 shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-black/5 bg-black/[0.01]">
+            <h4 className="font-bold">Recent Applications</h4>
+          </div>
+          
+          {/* Desktop Table */}
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-black/5 text-[10px] font-bold uppercase tracking-wider text-black/40">
+                  <th className="px-6 py-4">Student</th>
+                  <th className="px-6 py-4">Grade</th>
+                  <th className="px-6 py-4">Parent</th>
+                  <th className="px-6 py-4">Status</th>
+                  <th className="px-6 py-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-black/5">
+                {admissions.map(app => (
+                  <tr key={app.id} className="hover:bg-black/[0.01] transition-colors">
+                    <td className="px-6 py-4">
+                      <p className="text-sm font-bold">{app.student_name}</p>
+                      <p className="text-[10px] text-black/40">{new Date(app.applied_at).toLocaleDateString()}</p>
+                    </td>
+                    <td className="px-6 py-4 text-sm font-medium text-black/60">{app.grade_applied}</td>
+                    <td className="px-6 py-4">
+                      <p className="text-sm font-medium">{app.parent_name}</p>
+                      <p className="text-[10px] text-black/40">{app.parent_contact}</p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded-full ${
+                        app.status === 'pending' ? 'bg-orange-100 text-orange-700' :
+                        app.status === 'accepted' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
+                      }`}>
+                        {app.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="flex justify-end gap-2">
+                        <button 
+                          onClick={() => openMap(app.address)}
+                          className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                          title="View Address on Map"
+                        >
+                          <MapPin size={18} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Card List */}
+          <div className="md:hidden divide-y divide-black/5">
+            {admissions.map(app => (
+              <div key={app.id} className="p-4 space-y-3">
+                <div className="flex justify-between items-start">
+                  <div>
                     <p className="text-sm font-bold">{app.student_name}</p>
                     <p className="text-[10px] text-black/40">{new Date(app.applied_at).toLocaleDateString()}</p>
-                  </td>
-                  <td className="px-6 py-4 text-sm font-medium text-black/60">{app.grade_applied}</td>
-                  <td className="px-6 py-4">
-                    <p className="text-sm font-medium">{app.parent_name}</p>
-                    <p className="text-[10px] text-black/40">{app.parent_contact}</p>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded-full ${
-                      app.status === 'pending' ? 'bg-orange-100 text-orange-700' :
-                      app.status === 'accepted' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
-                    }`}>
-                      {app.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <button 
-                      onClick={() => openMap(app.address)}
-                      className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-                      title="View Address on Map"
-                    >
-                      <MapPin size={18} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-              {admissions.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-black/30 italic text-sm">No applications received yet.</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                  </div>
+                  <span className={`text-[10px] font-bold uppercase px-2 py-1 rounded-full ${
+                    app.status === 'pending' ? 'bg-orange-100 text-orange-700' :
+                    app.status === 'accepted' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
+                  }`}>
+                    {app.status}
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <p className="text-[10px] text-black/40 uppercase font-bold">Grade</p>
+                    <p className="font-medium">{app.grade_applied}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-black/40 uppercase font-bold">Parent</p>
+                    <p className="font-medium">{app.parent_name}</p>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center pt-2 border-t border-black/5">
+                  <p className="text-xs text-black/60">{app.parent_contact}</p>
+                  <button 
+                    onClick={() => openMap(app.address)}
+                    className="flex items-center gap-1 text-[10px] font-bold text-emerald-600"
+                  >
+                    <MapPin size={14} /> View Map
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {admissions.length === 0 && (
+            <div className="px-6 py-12 text-center text-black/30 italic text-sm">No applications received yet.</div>
+          )}
         </div>
-      </div>
+      )}
     </div>
   );
 }

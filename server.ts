@@ -3,6 +3,9 @@ import { createServer as createViteServer } from "vite";
 import Database from "better-sqlite3";
 import path from "path";
 import { fileURLToPath } from "url";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -66,10 +69,21 @@ db.exec(`
 
   CREATE TABLE IF NOT EXISTS testimonials (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    author TEXT NOT NULL,
-    content TEXT NOT NULL,
+    author TEXT,
+    content TEXT,
+    rating INTEGER DEFAULT 5,
     date TEXT DEFAULT CURRENT_TIMESTAMP
   );
+`);
+
+// Ensure rating column exists for existing databases
+try {
+  db.prepare("ALTER TABLE testimonials ADD COLUMN rating INTEGER DEFAULT 5").run();
+} catch (e) {
+  // Column probably already exists
+}
+
+db.exec(`
 
   CREATE TABLE IF NOT EXISTS admissions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -88,6 +102,14 @@ db.exec(`
     message TEXT NOT NULL,
     type TEXT DEFAULT 'info',
     broadcast INTEGER DEFAULT 0,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS chatbot_feedback (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    message_text TEXT NOT NULL,
+    response_text TEXT NOT NULL,
+    rating TEXT CHECK(rating IN ('positive', 'negative')),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 
@@ -121,6 +143,24 @@ async function startServer() {
 
   // API Routes
   
+  // Admin Login
+  app.post("/api/login", (req, res) => {
+    const { password } = req.body;
+    // Simple hardcoded password for prototype
+    if (password === "admin123") {
+      res.json({ success: true, role: 'admin' });
+    } else {
+      res.status(401).json({ success: false, message: "Invalid password" });
+    }
+  });
+
+  // Chatbot Feedback
+  app.post("/api/chatbot/feedback", (req, res) => {
+    const { message_text, response_text, rating } = req.body;
+    db.prepare("INSERT INTO chatbot_feedback (message_text, response_text, rating) VALUES (?, ?, ?)").run(message_text, response_text, rating);
+    res.json({ success: true });
+  });
+
   // Students
   app.get("/api/students", (req, res) => {
     const students = db.prepare("SELECT * FROM students").all();
@@ -202,7 +242,7 @@ async function startServer() {
 
   // Quizzes
   app.get("/api/quizzes", (req, res) => {
-    const quizzes = db.prepare("SELECT * FROM quizzes").all();
+    const quizzes = db.prepare("SELECT * FROM quizzes").all() as any[];
     res.json(quizzes.map(q => ({ ...q, questions: JSON.parse(q.questions as string) })));
   });
   app.post("/api/quizzes", (req, res) => {
@@ -217,13 +257,13 @@ async function startServer() {
     res.json(testimonials);
   });
   app.post("/api/testimonials", (req, res) => {
-    const { author, content } = req.body;
-    db.prepare("INSERT INTO testimonials (author, content) VALUES (?, ?)").run(author, content);
+    const { author, content, rating } = req.body;
+    db.prepare("INSERT INTO testimonials (author, content, rating) VALUES (?, ?, ?)").run(author, content, rating || 5);
     res.json({ success: true });
   });
   app.put("/api/testimonials/:id", (req, res) => {
-    const { author, content } = req.body;
-    db.prepare("UPDATE testimonials SET author = ?, content = ? WHERE id = ?").run(author, content, req.params.id);
+    const { author, content, rating } = req.body;
+    db.prepare("UPDATE testimonials SET author = ?, content = ?, rating = ? WHERE id = ?").run(author, content, rating || 5, req.params.id);
     res.json({ success: true });
   });
 

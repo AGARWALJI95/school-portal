@@ -1,11 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { MessageSquare, X, Send, Bot, User, Loader2, Minimize2, Maximize2 } from 'lucide-react';
+import { MessageSquare, X, Send, Bot, User, Loader2, Minimize2, Maximize2, ThumbsUp, ThumbsDown, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GoogleGenAI } from "@google/genai";
+import { API_BASE_URL } from '../config';
 
 interface Message {
   role: 'user' | 'model';
   text: string;
+  feedback?: 'positive' | 'negative';
 }
 
 export const ChatBot: React.FC = () => {
@@ -16,6 +18,7 @@ export const ChatBot: React.FC = () => {
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [feedbackSent, setFeedbackSent] = useState<Record<number, boolean>>({});
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -33,26 +36,77 @@ export const ChatBot: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY || '' });
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY || (process.env as any).GEMINI_API_KEY;
       
+      if (!apiKey || apiKey.length < 10) {
+        throw new Error('MISSING_KEY');
+      }
+
+      const ai = new GoogleGenAI({ apiKey });
+      
+      const chatHistory = messages
+        .filter((m, index) => index > 0 || m.role === 'user')
+        .concat({ role: 'user', text: userMessage })
+        .map(m => ({
+          role: m.role === 'user' ? 'user' : 'model',
+          parts: [{ text: m.text }]
+        }));
+
       const response = await ai.models.generateContent({
         model: "gemini-3-flash-preview",
-        contents: messages.concat({ role: 'user', text: userMessage }).map(m => ({
-          role: m.role,
-          parts: [{ text: m.text }]
-        })),
+        contents: chatHistory,
         config: {
-          systemInstruction: "You are the AI Assistant for 'Primary School Nakeebpur Second' (P S NAKEEBPUR 2ND), established in 1954. You are helpful, polite, and knowledgeable about school management. You can answer questions about students, staff, attendance, and school activities. Use a mix of English and Hindi (Hinglish) to be more approachable. Keep your answers concise and professional.",
+          systemInstruction: "You are the AI Assistant for 'Primary School Nakeebpur Second' (P S NAKEEBPUR 2ND), established in 1954. You are helpful, polite, and knowledgeable about school management. Use Hinglish (Hindi + English).",
         },
       });
 
-      const aiText = response.text || "Maaf kijiye, main abhi samajh nahi pa raha hoon. Kripya phir se puchein.";
+      const aiText = response.text || "Maaf kijiye, main abhi samajh nahi pa raha hoon.";
       setMessages(prev => [...prev, { role: 'model', text: aiText }]);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Chat Error:', error);
-      setMessages(prev => [...prev, { role: 'model', text: "Technical error! Kripya thodi der baad koshish karein." }]);
+      let errorMsg = "Technical error! Kripya check karein ki internet chal raha hai.";
+      
+      if (error.message === 'MISSING_KEY') {
+        errorMsg = "API Key nahi mili! Kripya .env file mein VITE_GEMINI_API_KEY check karein.";
+      } else if (error.message?.includes('503') || error.message?.includes('high demand')) {
+        errorMsg = "Abhi server par bahut load hai (High Demand). Kripya 1 minute baad phir se try karein.";
+      } else if (error.message?.includes('403') || error.message?.includes('API_KEY_INVALID')) {
+        errorMsg = "API Key galat hai. Kripya Google AI Studio se nayi key lein.";
+      } else {
+        errorMsg = `Error: ${error.message || 'Unknown error'}. Kripya check karein ki API Key sahi hai.`;
+      }
+      
+      setMessages(prev => [...prev, { role: 'model', text: errorMsg }]);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleFeedback = async (index: number, rating: 'positive' | 'negative') => {
+    if (feedbackSent[index]) return;
+
+    const message = messages[index];
+    const userMessage = messages[index - 1];
+
+    try {
+      await fetch(`${API_BASE_URL}/api/chatbot/feedback`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message_text: userMessage?.text || 'N/A',
+          response_text: message.text,
+          rating
+        })
+      });
+
+      setFeedbackSent(prev => ({ ...prev, [index]: true }));
+      setMessages(prev => {
+        const newMessages = [...prev];
+        newMessages[index] = { ...newMessages[index], feedback: rating };
+        return newMessages;
+      });
+    } catch (err) {
+      console.error('Feedback Error:', err);
     }
   };
 
@@ -119,7 +173,7 @@ export const ChatBot: React.FC = () => {
                   {messages.map((m, i) => (
                     <div 
                       key={i} 
-                      className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                      className={`flex flex-col ${m.role === 'user' ? 'items-end' : 'items-start'}`}
                     >
                       <div className={`max-w-[80%] flex gap-2 ${m.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
                         <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-1 ${
@@ -135,6 +189,34 @@ export const ChatBot: React.FC = () => {
                           {m.text}
                         </div>
                       </div>
+                      
+                      {/* Feedback Buttons for Model Messages (except first greeting) */}
+                      {m.role === 'model' && i > 0 && (
+                        <div className="flex items-center gap-2 mt-1 ml-8">
+                          {feedbackSent[i] ? (
+                            <span className="text-[10px] text-emerald-600 font-bold flex items-center gap-1">
+                              <Check size={10} /> Feedback sent
+                            </span>
+                          ) : (
+                            <>
+                              <button 
+                                onClick={() => handleFeedback(i, 'positive')}
+                                className="p-1 text-slate-400 hover:text-emerald-600 transition-colors"
+                                title="Helpful"
+                              >
+                                <ThumbsUp size={12} />
+                              </button>
+                              <button 
+                                onClick={() => handleFeedback(i, 'negative')}
+                                className="p-1 text-slate-400 hover:text-red-600 transition-colors"
+                                title="Not helpful"
+                              >
+                                <ThumbsDown size={12} />
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      )}
                     </div>
                   ))}
                   {isLoading && (

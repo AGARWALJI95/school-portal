@@ -57,8 +57,9 @@ export interface Question {
 
 export interface Testimonial {
   id: number;
-  author: string;
-  content: string;
+  author?: string;
+  content?: string;
+  rating: number;
   date: string;
 }
 

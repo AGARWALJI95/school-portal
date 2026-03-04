@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { BookOpen, Plus, CheckCircle2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Quiz } from '../types';
+import { API_BASE_URL } from '../config';
 
-export function QuizView() {
+export function QuizView({ isAdmin }: { isAdmin: boolean }) {
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [activeQuiz, setActiveQuiz] = useState<Quiz | null>(null);
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -11,7 +12,7 @@ export function QuizView() {
   const [finished, setFinished] = useState(false);
 
   useEffect(() => {
-    fetch('/api/quizzes').then(res => res.json()).then(setQuizzes);
+    fetch(`${API_BASE_URL}/api/quizzes`).then(res => res.json()).then(setQuizzes);
   }, []);
 
   const handleAnswer = (index: number) => {
@@ -95,11 +96,12 @@ export function QuizView() {
             </button>
           </div>
         ))}
-        {/* Mock Add Quiz Button */}
-        <div className="bg-dashed border-2 border-dashed border-black/10 rounded-2xl p-6 flex flex-col items-center justify-center text-black/30 hover:border-emerald-600/30 hover:text-emerald-600/50 transition-all cursor-pointer">
-          <Plus size={32} className="mb-2" />
-          <p className="text-xs font-bold uppercase tracking-wider">Create New Quiz</p>
-        </div>
+        {isAdmin && (
+          <div className="bg-dashed border-2 border-dashed border-black/10 rounded-2xl p-6 flex flex-col items-center justify-center text-black/30 hover:border-emerald-600/30 hover:text-emerald-600/50 transition-all cursor-pointer">
+            <Plus size={32} className="mb-2" />
+            <p className="text-xs font-bold uppercase tracking-wider">Create New Quiz</p>
+          </div>
+        )}
       </div>
     </div>
   );

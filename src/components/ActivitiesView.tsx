@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Clock, Search, ChevronRight } from 'lucide-react';
 import { Activity } from '../types';
+import { API_BASE_URL } from '../config';
 
-export function ActivitiesView() {
+export function ActivitiesView({ isAdmin }: { isAdmin: boolean }) {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [showAdd, setShowAdd] = useState(false);
   const [formData, setFormData] = useState({ title: '', description: '', date: '', time: '', location: '' });
@@ -12,14 +13,14 @@ export function ActivitiesView() {
   useEffect(() => { fetchActivities(); }, []);
 
   const fetchActivities = async () => {
-    const res = await fetch('/api/activities');
+    const res = await fetch(`${API_BASE_URL}/api/activities`);
     const data = await res.json();
     setActivities(data);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await fetch('/api/activities', {
+    await fetch(`${API_BASE_URL}/api/activities`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(formData)
@@ -58,7 +59,9 @@ export function ActivitiesView() {
             </select>
           </div>
         </div>
-        <button onClick={() => setShowAdd(true)} className="bg-emerald-600 text-white px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2 shadow-lg shadow-emerald-600/20"><Plus size={18} /> Add Event</button>
+        {isAdmin && (
+          <button onClick={() => setShowAdd(true)} className="bg-emerald-600 text-white px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2 shadow-lg shadow-emerald-600/20"><Plus size={18} /> Add Event</button>
+        )}
       </div>
 
       {showAdd && (

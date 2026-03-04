@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, XCircle, MapPin } from 'lucide-react';
 import { motion } from 'motion/react';
+import { API_BASE_URL } from '../config';
 
-export function RecordsView({ type }: { type: 'student' | 'staff' }) {
+export function RecordsView({ type, isAdmin }: { type: 'student' | 'staff', isAdmin: boolean }) {
   const [records, setRecords] = useState<any[]>([]);
   const [showAdd, setShowAdd] = useState(false);
   const [editingRecord, setEditingRecord] = useState<any | null>(null);
@@ -17,7 +18,7 @@ export function RecordsView({ type }: { type: 'student' | 'staff' }) {
   }, [type]);
 
   const fetchRecords = async () => {
-    const res = await fetch(`/api/${type === 'student' ? 'students' : 'staff'}`);
+    const res = await fetch(`${API_BASE_URL}/api/${type === 'student' ? 'students' : 'staff'}`);
     const data = await res.json();
     setRecords(data);
   };
@@ -25,8 +26,8 @@ export function RecordsView({ type }: { type: 'student' | 'staff' }) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const url = editingRecord 
-      ? `/api/${type === 'student' ? 'students' : 'staff'}/${editingRecord.id}`
-      : `/api/${type === 'student' ? 'students' : 'staff'}`;
+      ? `${API_BASE_URL}/api/${type === 'student' ? 'students' : 'staff'}/${editingRecord.id}`
+      : `${API_BASE_URL}/api/${type === 'student' ? 'students' : 'staff'}`;
     
     await fetch(url, {
       method: editingRecord ? 'PUT' : 'POST',
@@ -69,13 +70,15 @@ export function RecordsView({ type }: { type: 'student' | 'staff' }) {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-bold">All {type === 'student' ? 'Students' : 'Staff Members'}</h3>
-        <button 
-          onClick={() => { resetForm(); setShowAdd(true); }}
-          className="bg-emerald-600 text-white px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2 hover:bg-emerald-700 transition-colors"
-        >
-          <Plus size={18} />
-          Add {type === 'student' ? 'Student' : 'Staff'}
-        </button>
+        {isAdmin && (
+          <button 
+            onClick={() => { resetForm(); setShowAdd(true); }}
+            className="bg-emerald-600 text-white px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2 hover:bg-emerald-700 transition-colors"
+          >
+            <Plus size={18} />
+            Add {type === 'student' ? 'Student' : 'Staff'}
+          </button>
+        )}
       </div>
 
       {showAdd && (
@@ -217,44 +220,82 @@ export function RecordsView({ type }: { type: 'student' | 'staff' }) {
       )}
 
       <div className="bg-white rounded-2xl border border-black/5 overflow-hidden shadow-sm">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-black/5 text-[10px] font-bold uppercase tracking-wider text-black/40">
-              <th className="px-6 py-4">Name</th>
-              <th className="px-6 py-4">{type === 'student' ? 'Grade' : 'Role'}</th>
-              <th className="px-6 py-4">{type === 'student' ? 'Roll No' : 'Email'}</th>
-              <th className="px-6 py-4 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-black/5">
-            {records.map(record => (
-              <tr key={record.id} className="hover:bg-black/[0.02] transition-colors">
-                <td className="px-6 py-4 text-sm font-medium">{record.name}</td>
-                <td className="px-6 py-4 text-sm text-black/60">{type === 'student' ? record.grade : record.role}</td>
-                <td className="px-6 py-4 text-sm text-black/60">{type === 'student' ? record.roll_number : record.email}</td>
-                <td className="px-6 py-4 text-right flex justify-end gap-3">
+        {/* Desktop Table */}
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-black/5 text-[10px] font-bold uppercase tracking-wider text-black/40">
+                <th className="px-6 py-4">Name</th>
+                <th className="px-6 py-4">{type === 'student' ? 'Grade' : 'Role'}</th>
+                <th className="px-6 py-4">{type === 'student' ? 'Roll No' : 'Email'}</th>
+                <th className="px-6 py-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-black/5">
+              {records.map(record => (
+                <tr key={record.id} className="hover:bg-black/[0.02] transition-colors">
+                  <td className="px-6 py-4 text-sm font-medium">{record.name}</td>
+                  <td className="px-6 py-4 text-sm text-black/60">{type === 'student' ? record.grade : record.role}</td>
+                  <td className="px-6 py-4 text-sm text-black/60">{type === 'student' ? record.roll_number : record.email}</td>
+                  <td className="px-6 py-4 text-right flex justify-end gap-3">
+                    <button 
+                      onClick={() => setViewingRecord(record)}
+                      className="text-emerald-600 hover:underline text-xs font-bold"
+                    >
+                      View
+                    </button>
+                    {isAdmin && (
+                      <button 
+                        onClick={() => handleEdit(record)}
+                        className="text-blue-600 hover:underline text-xs font-bold"
+                      >
+                        Edit
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Mobile Card List */}
+        <div className="md:hidden divide-y divide-black/5">
+          {records.map(record => (
+            <div key={record.id} className="p-4 space-y-3">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-sm font-bold">{record.name}</p>
+                  <p className="text-xs text-black/40">{type === 'student' ? `Grade ${record.grade}` : record.role}</p>
+                </div>
+                <div className="flex gap-3">
                   <button 
                     onClick={() => setViewingRecord(record)}
-                    className="text-emerald-600 hover:underline text-xs font-bold"
+                    className="text-emerald-600 text-xs font-bold"
                   >
                     View
                   </button>
-                  <button 
-                    onClick={() => handleEdit(record)}
-                    className="text-blue-600 hover:underline text-xs font-bold"
-                  >
-                    Edit
-                  </button>
-                </td>
-              </tr>
-            ))}
-            {records.length === 0 && (
-              <tr>
-                <td colSpan={4} className="px-6 py-12 text-center text-black/40 text-sm italic">No records found.</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+                  {isAdmin && (
+                    <button 
+                      onClick={() => handleEdit(record)}
+                      className="text-blue-600 text-xs font-bold"
+                    >
+                      Edit
+                    </button>
+                  )}
+                </div>
+              </div>
+              <div className="flex justify-between text-[10px] text-black/40 uppercase font-bold tracking-wider">
+                <span>{type === 'student' ? 'Roll No' : 'Email'}</span>
+                <span className="text-black/60">{type === 'student' ? record.roll_number : record.email}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+        
+        {records.length === 0 && (
+          <div className="px-6 py-12 text-center text-black/40 text-sm italic">No records found.</div>
+        )}
       </div>
 
       {/* Profile View Modal */}
