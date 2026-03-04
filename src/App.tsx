@@ -14,6 +14,7 @@ import {
   FileText,
   Lock,
   Unlock,
+  Shield,
   ShieldAlert,
   GraduationCap,
   Star
@@ -35,6 +36,7 @@ import { TestimonialsView } from './components/TestimonialsView';
 import { AdmissionView } from './components/AdmissionView';
 import { NotificationsView } from './components/NotificationsView';
 import { ConnectView } from './components/ConnectView';
+import { PrivacyPolicyView } from './components/PrivacyPolicyView';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<View>('dashboard');
@@ -109,6 +111,7 @@ export default function App() {
       case 'admission': return <AdmissionView isAdmin={isAdmin} />;
       case 'notifications': return <NotificationsView isAdmin={isAdmin} />;
       case 'connect': return <ConnectView />;
+      case 'privacy': return <PrivacyPolicyView />;
       default: return <DashboardView stats={stats} isAdmin={isAdmin} />;
     }
   };
@@ -137,9 +140,9 @@ export default function App() {
           <h1 className="text-xl font-bold tracking-tight flex items-center gap-3">
             <Logo className="w-10 h-10" />
             <div className="flex flex-col">
-              <span className="text-xs leading-tight font-black text-blue-700">P S NAKEEBPUR</span>
+              <span className="text-xs leading-tight font-black text-blue-700 uppercase">Primary School</span>
               <div className="flex items-center gap-1">
-                <span className="text-[9px] text-blue-700 font-black uppercase tracking-widest">2ND</span>
+                <span className="text-[9px] text-blue-700 font-black uppercase tracking-widest">Nakeebpur 2nd</span>
                 <span className="text-[7px] text-red-600 font-bold italic">Since 1954</span>
               </div>
             </div>
@@ -164,6 +167,7 @@ export default function App() {
           <NavItem active={currentView === 'notifications'} onClick={() => { setCurrentView('notifications'); setIsSidebarOpen(false); }} icon={<Bell size={20} />} label="Notifications" />
           <NavItem active={currentView === 'testimonials'} onClick={() => { setCurrentView('testimonials'); setIsSidebarOpen(false); }} icon={<MessageSquare size={20} />} label="Testimonials" />
           <NavItem active={currentView === 'connect'} onClick={() => { setCurrentView('connect'); setIsSidebarOpen(false); }} icon={<Globe size={20} />} label="Connect With Us" />
+          <NavItem active={currentView === 'privacy'} onClick={() => { setCurrentView('privacy'); setIsSidebarOpen(false); }} icon={<Shield size={20} />} label="Privacy Policy" />
         </nav>
 
         <div className="p-4 border-t border-black/5 space-y-3">

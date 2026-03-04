@@ -92,4 +92,4 @@ export interface Notification {
   created_at: string;
 }
 
-export type View = 'dashboard' | 'students' | 'staff' | 'attendance' | 'activities' | 'results' | 'quiz' | 'testimonials' | 'admission' | 'notifications' | 'connect';
+export type View = 'dashboard' | 'students' | 'staff' | 'attendance' | 'activities' | 'results' | 'quiz' | 'testimonials' | 'admission' | 'notifications' | 'connect' | 'privacy';

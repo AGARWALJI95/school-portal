@@ -2,7 +2,7 @@ import React from 'react';
 import { MapPin, Phone, Mail, Globe, Send, MessageSquare, Map as MapIcon } from 'lucide-react';
 
 export function ConnectView() {
-  const schoolAddress = "Primary School Nakeebpur Second, Nakeebpur, Uttar Pradesh, India";
+  const schoolAddress = "Primary School Nakeebpur 2nd, Nakeebpur, Uttar Pradesh, India";
   
   return (
     <div className="space-y-8">
@@ -26,8 +26,8 @@ export function ConnectView() {
               <ContactItem 
                 icon={<Mail className="text-orange-600" />} 
                 label="Email Address" 
-                value="info@nakeebpursecond.edu.in" 
-                action={() => window.location.href = 'mailto:info@nakeebpursecond.edu.in'}
+                value="info@nakeebpur2nd.edu.in" 
+                action={() => window.location.href = 'mailto:info@nakeebpur2nd.edu.in'}
               />
             </div>
           </div>
