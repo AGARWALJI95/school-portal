@@ -8,13 +8,13 @@
   "theme_color": "#4f46e5",
   "icons": [
     {
-      "src": "https://ais-dev-zr6vz7tto26wetudaq5hfw-570880703871.asia-southeast1.run.app/logo.png",
+      "src": "https://raw.githubusercontent.com/google/material-design-icons/master/src/social/school/materialicons/512pt/2x/baseline_school_black_48dp.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "https://ais-dev-zr6vz7tto26wetudaq5hfw-570880703871.asia-southeast1.run.app/logo.png",
+      "src": "https://raw.githubusercontent.com/google/material-design-icons/master/src/social/school/materialicons/512pt/2x/baseline_school_black_48dp.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
