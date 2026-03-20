@@ -1,10 +1,10 @@
 <svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
   <rect width="500" height="500" fill="white" />
-  <path d="M 100 250 A 150 150 0 0 1 400 250" fill="none" stroke="#FF5F5F" strokeWidth="25" />
-  <path d="M 125 250 A 125 125 0 0 1 375 250" fill="none" stroke="#FFB84D" strokeWidth="25" />
-  <path d="M 150 250 A 100 100 0 0 1 350 250" fill="none" stroke="#FFFF66" strokeWidth="25" />
-  <path d="M 175 250 A 75 75 0 0 1 325 250" fill="none" stroke="#66FF66" strokeWidth="25" />
-  <path d="M 200 250 A 50 50 0 0 1 300 250" fill="none" stroke="#66B2FF" strokeWidth="25" />
+  <path d="M 100 250 A 150 150 0 0 1 400 250" fill="none" stroke="#FF5F5F" stroke-width="25" />
+  <path d="M 125 250 A 125 125 0 0 1 375 250" fill="none" stroke="#FFB84D" stroke-width="25" />
+  <path d="M 150 250 A 100 100 0 0 1 350 250" fill="none" stroke="#FFFF66" stroke-width="25" />
+  <path d="M 175 250 A 75 75 0 0 1 325 250" fill="none" stroke="#66FF66" stroke-width="25" />
+  <path d="M 200 250 A 50 50 0 0 1 300 250" fill="none" stroke="#66B2FF" stroke-width="25" />
   <g fill="#E0F2FE"><circle cx="100" cy="250" r="40" /><circle cx="130" cy="230" r="35" /><circle cx="400" cy="250" r="40" /><circle cx="370" cy="230" r="35" /></g>
   <path d="M 100 320 L 250 280 L 400 320 L 250 420 Z" fill="#FDE68A" />
   <path d="M 100 320 L 250 420 L 250 440 L 100 340 Z" fill="#BE123C" />
