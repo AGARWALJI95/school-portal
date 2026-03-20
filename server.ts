@@ -157,15 +157,19 @@ async function startServer() {
 
   // API Routes
   
-  // Explicitly serve manifest.json and sw.js with correct MIME types
+  // Serve manifest.json and sw.js with correct MIME types and CORS headers
   app.get(["/manifest.json", "/manifest.webmanifest"], (req, res) => {
-    res.setHeader("Content-Type", "application/manifest+json; charset=utf-8");
+    res.setHeader("Content-Type", "application/json; charset=utf-8");
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
     res.sendFile(path.join(__dirname, "public", "manifest.json"));
   });
 
   app.get("/sw.js", (req, res) => {
     res.setHeader("Content-Type", "application/javascript; charset=utf-8");
     res.setHeader("Service-Worker-Allowed", "/");
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
     res.sendFile(path.join(__dirname, "public", "sw.js"));
   });
   
